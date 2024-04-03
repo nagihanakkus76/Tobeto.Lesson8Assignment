@@ -1,8 +1,11 @@
 ﻿using BusinessLayer.Abstract;
-using EntitiesLater;
+using DataAccessLayer.Abstract;
+using DataAccessLayer.Concrete.EntityFramework;
+using EntitiesLayer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,50 +13,36 @@ namespace BusinessLayer.Concrete
 {
     public class CategoryManager : ICategoryService
     {
-        List<Category> _categories;
+        private readonly ICategoryRepository _categoryRepository;
 
-        public CategoryManager()
+        public CategoryManager(ICategoryRepository categoryRepository)
         {
-            _categories = new List<Category>();
+            _categoryRepository = categoryRepository;
         }
 
         public void Add(Category category)
         {
-            _categories.Add(category);  
+            _categoryRepository.Add(category);
         }
 
-        public void Delete(int id)
+        public void Delete(Category category)
         {
-            _categories.Remove( GetById(id) );
+            _categoryRepository.Delete(category);
         }
 
-        public List<Category> GetAll()
+        public Category Get(Expression<Func<Category, bool>> predicate)
         {
-           return _categories;
+            return _categoryRepository.Get(predicate);
         }
 
-        public Category GetById(int id)
+        public async Task<List<Category>> GetList(Expression<Func<Category, bool>>? predicate = null)
         {
-          return _categories.Find(x => x.Id == id)  ;
+            return await _categoryRepository.GetListAsync(predicate);
         }
 
         public void Update(Category category)
         {
-            int id = category.Id;
-
-            Category categoryId = GetById(id);
-
-
-            if (categoryId != null)
-            {
-                int index = _categories.IndexOf(categoryId);
-                _categories[index] = category;
-            }
-            else
-            {
-                throw new Exception("Güncellenecek veri bulunamadı.");
-            }
+            _categoryRepository.Update(category);
         }
     }
 }
-

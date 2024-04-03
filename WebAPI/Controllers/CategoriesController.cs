@@ -1,5 +1,5 @@
 ﻿using BusinessLayer.Abstract;
-using EntitiesLater;
+using EntitiesLayer;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers
@@ -22,9 +22,9 @@ namespace WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public void Delete(Category category)
         {
-            _categoryService.Delete(id);
+            _categoryService.Delete(category);
         }
 
         [HttpPut]
@@ -33,17 +33,21 @@ namespace WebAPI.Controllers
             _categoryService.Update(category);
         }
 
-        [HttpGet]
-        public List<Category> GetAll()
-        {
-            return _categoryService.GetAll();
-        }
+        //[HttpGet]
+        //public List<Category> GetList()
+        //{
+        //    return _categoryService.GetList();
+        //}
 
         [HttpGet("{id}")]
-        public Category GetById(int id)
+        public Category Get(int id)
         {
-            return _categoryService.GetById(id);
+            return _categoryService.Get(x => x.ID == id);
         }
-
+        [HttpGet]
+        public async Task<List<Category>> GetAll()
+        {
+            return await _categoryService.GetList();
+        }
     }
 }

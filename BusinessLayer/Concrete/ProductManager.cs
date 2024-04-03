@@ -1,8 +1,15 @@
-﻿using BusinessLayer.Abstract;
-using EntitiesLater;
+﻿using AutoMapper;
+using BusinessLayer.Abstract;
+using BusinessLayer.Dtos.Product.Requests;
+using BusinessLayer.Dtos.Product.Responses;
+using Core.CrossCuttingConcerns.Exceptions.Types;
+using DataAccessLayer.Abstract;
+using DataAccessLayer.Concrete.EntityFramework;
+using EntitiesLayer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,49 +17,48 @@ namespace BusinessLayer.Concrete
 {
     public class ProductManager : IProductService
     {
-        List<Product> _products;
-
-        public ProductManager()
+        private readonly IProductRepository _productRepository;
+        private readonly IMapper _mapper;
+        // DI => Bu servis, servisler arasına eklendi mi?
+        public ProductManager(IProductRepository productRepository, IMapper mapper)
         {
-            _products = new List<Product>();
+            _productRepository = productRepository;
+            _mapper = mapper;
         }
 
-        public void Add(Product product)
+        public async Task Add(AddProductRequest dto)
         {
-            _products.Add(product);
+            if (dto.UnitPrice < 0)
+                throw new BusinessException("Ürün fiyatı 0'dan küçük olamaz.");
+            Product? productWithSameName = await _productRepository.GetAsync(p => p.Name == dto.Name);
+            if (productWithSameName is not null)
+                throw new System.Exception("Aynı isimde 2. ürün eklenemez.");
+
+            Product product = _mapper.Map<Product>(dto);
+            await _productRepository.AddAsync(product);
+
         }
 
-        public void Delete(int id)
+        public void Delete(Product product)
         {
-            _products.Remove(GetById(id));
+            _productRepository.Delete(product);
         }
 
-        public List<Product> GetAll()
+        public Product Get(Expression<Func<Product, bool>> predicate)
         {
-            return _products;
+            return _productRepository.Get(predicate);
         }
 
-        public Product GetById(int id)
+        public async Task<List<ListProductResponse>> GetList(Expression<Func<Product, bool>>? predicate = null)
         {
-            return _products.Find(x => x.Id == id);
+            List<Product> products = await _productRepository.GetListAsync();
+            List<ListProductResponse> response = _mapper.Map<List<ListProductResponse>>(products);
+            return response;
         }
 
         public void Update(Product product)
         {
-            int id = product.Id;
-
-            Product productId = GetById(id);
-
-
-            if (productId != null)
-            {
-                int index = _products.IndexOf(productId);
-                _products[index] = product;
-            }
-            else
-            {
-                throw new Exception("Güncellenecek veri bulunamadı.");
-            }
+            _productRepository.Update(product);
         }
     }
 }

@@ -1,5 +1,7 @@
 ﻿using BusinessLayer.Abstract;
-using EntitiesLater;
+using BusinessLayer.Dtos.Product.Requests;
+using BusinessLayer.Dtos.Product.Responses;
+using EntitiesLayer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +14,7 @@ namespace WebAPI.Controllers
     {
         private readonly IProductService _productService;
 
-        private ProductsController(IProductService productService)
+        public ProductsController(IProductService productService)
         {
             _productService = productService;
         }
@@ -21,15 +23,15 @@ namespace WebAPI.Controllers
         // Headers => Yan bilgiler içerir.
 
         [HttpPost]
-        public void Add([FromBody] Product product)
+        public async Task Add([FromBody] AddProductRequest product)
         {
-            _productService.Add(product);
+            await _productService.Add(product);
         }
 
         [HttpDelete]
-        public void Delete(int id)
+        public void Delete(Product product)
         {
-            _productService.Delete(id);
+            _productService.Delete(product);
         }
 
         [HttpPut]
@@ -38,20 +40,16 @@ namespace WebAPI.Controllers
             _productService.Update(product);
         }
 
-        [HttpGet]
-        public List<Product> GetAll()
+        [HttpGet("{id}")]
+        public Product Get(int id)
         {
-            return _productService.GetAll();
+            return _productService.Get(x => x.ID == id);
         }
 
-
-        [HttpGet("{id}")]
-        public Product GetById(int id)
+        [HttpGet]
+        public async Task<List<ListProductResponse>> GetAll()
         {
-            return _productService.GetById(id);
-
-
+            return await _productService.GetList();
         }
     }
 }
-
